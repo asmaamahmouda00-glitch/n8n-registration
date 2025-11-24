@@ -1,0 +1,26 @@
+name: Run WorldPosta Automation
+
+on:
+  workflow_dispatch:  # Allow n8n to trigger it manually
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt || true
+          pip install undetected-chromedriver selenium beautifulsoup4
+
+      - name: Run automation script
+        run: |
+          python worldposta_automation_complete.py --headless
