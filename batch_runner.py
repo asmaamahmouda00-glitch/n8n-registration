@@ -11,7 +11,7 @@ from worldposta_automation import WorldPostaAutomationBot, random_delay
 INPUT_CSV = "accounts_to_register.csv"  # CSV with account data
 DELAY_BETWEEN_ACCOUNTS = (60, 120)  # Seconds to wait between accounts (min, max)
 HEADLESS_MODE = False  # Set to True to hide browser
-
+# (Adjust other configurations as needed)
 
 def read_accounts_from_csv(filename):
     """
