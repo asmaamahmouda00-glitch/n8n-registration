@@ -52,9 +52,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter102",
-    'email': "ai.dexter102@worldposta.com",
-    'company': "AI Company dexter102",
+    'full_name': "AI dexter103",
+    'email': "ai.dexter103@worldposta.com",
+    'company': "AI Company dexter103",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
@@ -383,8 +383,7 @@ class WorldPostaAutomationBot:
 
                 # Try multiple selectors for email rows
                 email_selectors = [
-                        "div[role='option'][aria-label*='Welcome To WorldPosta']",
-                        "div[role='option'][aria-label*='WorldPosta']"
+                        "div[role='option']:has(span.lvHighlightSubjectClass:text('Welcome To WorldPosta'))"
                     ]
 
 
