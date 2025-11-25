@@ -386,7 +386,7 @@ class WorldPostaAutomationBot:
                     'div[role="listitem"]',
                     'div[role="option"]',
                     'div.ms-List-cell',
-                    'div._lvv_E',
+                    'div._lvv_K _lvv_Q',
                     'tr[role="row"]',
                     'div[data-convid]',
                     'div.customScrollBar div[tabindex]'
