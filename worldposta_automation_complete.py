@@ -383,14 +383,10 @@ class WorldPostaAutomationBot:
 
                 # Try multiple selectors for email rows
                 email_selectors = [
-                    'div[role="listitem"]',
-                    'div[role="option"]',
-                    'div.ms-List-cell',
-                    'div._lvv_E',
-                    'tr[role="row"]',
-                    'div[data-convid]',
-                    'div.customScrollBar div[tabindex]'
-                ]
+                        "div[role='option'][aria-label*='Welcome To WorldPosta']",
+                        "div[role='option'][aria-label*='WorldPosta']"
+                    ]
+
 
                 email_found = False
 
