@@ -43,7 +43,7 @@ EMAIL_WAIT_TIMEOUT = 300  # seconds to wait for verification email (5 minutes)
 DEFAULT_TIMEOUT = 30  # default WebDriverWait timeout
 
 # Output Paths
-SCREENSHOT_DIR = r"c:\Users\Administrator\n8n-registration results\screenshots"
+SCREENSHOT_DIR = r"c:/Users/Administrator/n8n-registration results/screenshots"
 CSV_FILE = "registration_results.csv"
 JSON_FILE = "registration_results.json"
 
