@@ -43,7 +43,7 @@ EMAIL_WAIT_TIMEOUT = 300  # seconds to wait for verification email (5 minutes)
 DEFAULT_TIMEOUT = 30  # default WebDriverWait timeout
 
 # Output Paths
-SCREENSHOT_DIR = r"c:/Users/Administrator/n8n-registration results/screenshots"
+SCREENSHOT_DIR = r"c:\Users\Administrator\n8n-registration results\screenshots"
 CSV_FILE = "registration_results.csv"
 JSON_FILE = "registration_results.json"
 
@@ -130,7 +130,7 @@ class WorldPostaAutomationBot:
 
         chrome_options = Options()
 
-        # Headless mode for GitHub Actions
+                # Headless mode for GitHub Actions
         chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
@@ -141,10 +141,10 @@ class WorldPostaAutomationBot:
         # Optional but good
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
-        # Random window size (still works in headless)
+       # Random window size (still works in headless)
         chrome_options.add_argument("--window-size=1920,1080")
-
         self.driver = webdriver.Chrome(options=chrome_options)
+
 
         self.driver.set_page_load_timeout(60)
         self.wait = WebDriverWait(self.driver, DEFAULT_TIMEOUT)
@@ -383,9 +383,14 @@ class WorldPostaAutomationBot:
 
                 # Try multiple selectors for email rows
                 email_selectors = [
-                        "div[role='option']:has(span.lvHighlightSubjectClass:text('Welcome To WorldPosta'))"
-                    ]
-
+                    'div[role="listitem"]',
+                    'div[role="option"]',
+                    'div.ms-List-cell',
+                    'div._lvv_E',
+                    'tr[role="row"]',
+                    'div[data-convid]',
+                    'div.customScrollBar div[tabindex]'
+                ]
 
                 email_found = False
 
@@ -1216,7 +1221,8 @@ class WorldPostaAutomationBot:
 
             with open(JSON_FILE, 'w', encoding='utf-8') as f:
                 json.dump(json_data, f, indent=2, ensure_ascii=False)
-            print(f"✅ Status saved to JSON: {JSON_FILE}")
+            print(f"✅ Status saved to JSON: {JSON_FILE}") 
+
             # ▼▼▼ ADD THIS BLOCK HERE ▼▼▼
             print("\n===== BEGIN_REGISTRATION_JSON =====")
             try:
