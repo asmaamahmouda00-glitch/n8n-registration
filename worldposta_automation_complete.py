@@ -36,7 +36,7 @@ LOGIN_URL = "https://admin.worldposta.com/auth/login"
 
 # Email Settings
 EMAIL_DOMAIN = "@worldposta.com"
-EMAIL_SUBJECT_KEYWORD = "Welcome To WorldPosta Business Email"
+EMAIL_SUBJECT_KEYWORD = "Welcome To WorldPosta"
 
 # Timeouts
 EMAIL_WAIT_TIMEOUT = 300  # seconds to wait for verification email (5 minutes)
