@@ -43,7 +43,7 @@ EMAIL_WAIT_TIMEOUT = 300  # seconds to wait for verification email (5 minutes)
 DEFAULT_TIMEOUT = 30  # default WebDriverWait timeout
 
 # Output Paths
-SCREENSHOT_DIR = r"C:\Users\olaaa\Desktop\Projects\Registeration\SS"
+SCREENSHOT_DIR = r"c:\Users\Administrator\n8n-registration results\screenshots"
 CSV_FILE = "registration_results.csv"
 JSON_FILE = "registration_results.json"
 
@@ -1222,6 +1222,15 @@ class WorldPostaAutomationBot:
             with open(JSON_FILE, 'w', encoding='utf-8') as f:
                 json.dump(json_data, f, indent=2, ensure_ascii=False)
             print(f"✅ Status saved to JSON: {JSON_FILE}")
+            # ▼▼▼ ADD THIS BLOCK HERE ▼▼▼
+            print("\n===== BEGIN_REGISTRATION_JSON =====")
+            try:
+                with open(JSON_FILE, 'r', encoding='utf-8') as f:
+                    print(f.read())
+            except Exception as e:
+                print(f"Could not read {JSON_FILE}: {e}")
+            print("===== END_REGISTRATION_JSON =====")
+            # ▲▲▲ END OF INSERTED BLOCK ▲▲▲
 
         except Exception as e:
             print(f"⚠ Error saving status: {e}")
