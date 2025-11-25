@@ -16,7 +16,8 @@ import json
 import argparse
 from datetime import datetime
 from bs4 import BeautifulSoup
-import undetected_chromedriver as uc
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -127,21 +128,24 @@ class WorldPostaAutomationBot:
         """Initialize automation bot with undetected Chrome"""
         print("🌐 Launching Chrome browser...")
 
-        options = uc.ChromeOptions()
+        chrome_options = Options()
 
-        if not headless:
-            options.add_argument("--start-maximized")
-        else:
-            options.add_argument("--headless=new")
+        # Headless mode for GitHub Actions
+        chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--remote-debugging-port=9222")
 
-        options.add_argument("--disable-blink-features=AutomationControlled")
+        # Optional but good
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
-        # Random window size
-        window_width = random.randint(1200, 1920)
-        window_height = random.randint(800, 1080)
-        options.add_argument(f"--window-size={window_width},{window_height}")
+        # Random window size (still works in headless)
+        chrome_options.add_argument("--window-size=1920,1080")
 
-        self.driver = uc.Chrome(options=options, use_subprocess=True)
+        self.driver = webdriver.Chrome(options=chrome_options)
+
         self.driver.set_page_load_timeout(60)
         self.wait = WebDriverWait(self.driver, DEFAULT_TIMEOUT)
 
