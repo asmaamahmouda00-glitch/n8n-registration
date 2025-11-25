@@ -43,7 +43,7 @@ EMAIL_WAIT_TIMEOUT = 300  # seconds to wait for verification email (5 minutes)
 DEFAULT_TIMEOUT = 30  # default WebDriverWait timeout
 
 # Output Paths
-SCREENSHOT_DIR = r"c:\Users\Administrator\n8n-registration results\screenshots"
+SCREENSHOT_DIR = r"c:/Users/Administrator/n8n-registration results/screenshots"
 CSV_FILE = "registration_results.csv"
 JSON_FILE = "registration_results.json"
 
@@ -52,9 +52,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter97",
-    'email': "ai.dexter97@worldposta.com",
-    'company': "AI Company dexter97",
+    'full_name': "AI dexter101",
+    'email': "ai.dexter101@worldposta.com",
+    'company': "AI Company dexter101",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
