@@ -52,9 +52,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter107",
-    'email': "ai.dexter107@worldposta.com",
-    'company': "AI Company dexter107",
+    'full_name': "AI dexter108",
+    'email': "ai.dexter108@worldposta.com",
+    'company': "AI Company dexter108",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
@@ -380,6 +380,25 @@ class WorldPostaAutomationBot:
                 print("🔄 Refreshing inbox...")
                 self.driver.refresh()
                 random_delay(3, 5)
+
+                # Try to access Shadow DOM
+            try:
+                print("🔍 Attempting Shadow DOM access...")
+                root1 = self.driver.find_element(By.CSS_SELECTOR, "mail-app")
+                shadow1 = self.driver.execute_script("return arguments[0].shadowRoot", root1)
+
+                print("   ✔ Shadow root 1 accessed")
+
+                root2 = shadow1.find_element(By.CSS_SELECTOR, "mail-list")
+                shadow2 = self.driver.execute_script("return arguments[0].shadowRoot", root2)
+
+                print("   ✔ Shadow root 2 accessed")
+
+                # Now search inside shadow2
+                email_elements = shadow2.find_elements(By.CSS_SELECTOR, "div[role='option']")
+                print("   📧 Found", len(email_elements), "emails in Shadow DOM")
+            except Exception as e:
+                print("⚠ Shadow DOM access failed:", e)
 
                 # --- NEW: Switch to inbox iframe ---
                 self.driver.switch_to.default_content()
