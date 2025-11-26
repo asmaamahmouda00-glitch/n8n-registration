@@ -18,6 +18,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -52,9 +53,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter110",
+    'full_name': "AI dexter111",
     'email': "ai.dexter111@worldposta.com",
-    'company': "AI Company dexter112",
+    'company': "AI Company dexter111",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
@@ -125,40 +126,28 @@ def get_screenshot_filename(email, status):
 
 class WorldPostaAutomationBot:
     def __init__(self, headless=False):
-        """Initialize automation bot with Chrome (supports normal + headless)"""
+        """Initialize automation bot with undetected Chrome"""
         print("🌐 Launching Chrome browser...")
 
-        # ---- Base options (work in both modes) ----
         chrome_options = Options()
+        
+        # Headless mode for GitHub Actions
+        
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--remote-debugging-port=9222")
+
+        # Optional but good
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+
+       # Random window size (still works in headless)
         chrome_options.add_argument("--window-size=1920,1080")
+        self.driver = webdriver.Chrome(options=chrome_options)
 
-        # ---- Only add these when headless is explicitly requested ----
-        if headless:
-            chrome_options.add_argument("--headless=new")
-            chrome_options.add_argument("--no-sandbox")
-            chrome_options.add_argument("--disable-dev-shm-usage")
-            chrome_options.add_argument("--disable-gpu")
-            chrome_options.add_argument("--disable-extensions")
-            chrome_options.add_argument("--remote-debugging-port=9222")
 
-        # Try normal launch first, fallback to headless if it crashes
-        try:
-            self.driver = webdriver.Chrome(options=chrome_options)
-        except Exception as e:
-            print(f"⚠️ Primary Chrome launch failed: {e}")
-            print("🔁 Retrying with safe headless config...")
-
-            fallback_options = Options()
-            fallback_options.add_argument("--headless=new")
-            fallback_options.add_argument("--no-sandbox")
-            fallback_options.add_argument("--disable-dev-shm-usage")
-            fallback_options.add_argument("--disable-gpu")
-            fallback_options.add_argument("--window-size=1920,1080")
-            fallback_options.add_argument("--disable-blink-features=AutomationControlled")
-
-            self.driver = webdriver.Chrome(options=fallback_options)
-
+        
         self.driver.set_page_load_timeout(60)
         self.wait = WebDriverWait(self.driver, DEFAULT_TIMEOUT)
 
@@ -336,11 +325,15 @@ class WorldPostaAutomationBot:
             # --- Submit using ENTER instead of JS click ---
             print("🔓 Submitting login form with ENTER key...")
             password_input.send_keys("\n")
+            random_delay(3, 5)
 
-            random_delay(5, 7)
+            # >>> NEW: Handle language/timezone page <<<
+            self.handle_language_selection()
+            time.sleep(2)
 
             print("📄 URL after login:", self.driver.current_url)
             print("📌 Title after login:", self.driver.title)
+
 
             # Check if login succeeded (OWA inbox contains "owa/#path=/mail")
             if "/owa/#path=/mail" in self.driver.current_url:
@@ -362,6 +355,39 @@ class WorldPostaAutomationBot:
         except Exception as e:
             print(f"❌ Email login failed: {e}")
             self.status_log['error_message'] = str(e)
+            return False
+        
+    def handle_language_selection(self):
+        """Handle OWA language/timezone selection page (first login only)."""
+        try:
+            time.sleep(2)
+
+            # Detect language selection page
+            if "languageselection" not in self.driver.current_url.lower():
+                return False  # Not the page we're looking for
+
+            print("🌍 Language/Timezone selection page detected — configuring settings...")
+
+            # --- Select Cairo timezone ---
+            tz_dropdown = Select(self.driver.find_element(By.ID, "selTz"))
+            tz_dropdown.select_by_value("Egypt Standard Time")
+            time.sleep(1)
+
+            # --- Click Save ---
+            save_button = self.driver.find_element(By.XPATH, "//span[text()='Save']/parent::div")
+            save_button.click()
+            print("💾 Language & Timezone saved — waiting for inbox...")
+
+            # --- Wait for redirect to inbox ---
+            WebDriverWait(self.driver, 20).until(
+                EC.url_contains("/owa/")
+            )
+
+            print("📬 Redirected to inbox successfully.")
+            return True
+
+        except Exception as e:
+            print(f"⚠️ Could not complete language/timezone selection: {e}")
             return False
 
     def find_verification_email(self, timeout=EMAIL_WAIT_TIMEOUT):
