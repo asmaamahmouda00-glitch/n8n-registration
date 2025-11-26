@@ -125,26 +125,39 @@ def get_screenshot_filename(email, status):
 
 class WorldPostaAutomationBot:
     def __init__(self, headless=False):
-        """Initialize automation bot with undetected Chrome"""
+        """Initialize automation bot with Chrome (supports normal + headless)"""
         print("🌐 Launching Chrome browser...")
 
+        # ---- Base options (work in both modes) ----
         chrome_options = Options()
-
-                # Headless mode for GitHub Actions
-        
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--disable-extensions")
-        chrome_options.add_argument("--remote-debugging-port=9222")
-
-        # Optional but good
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-
-       # Random window size (still works in headless)
         chrome_options.add_argument("--window-size=1920,1080")
-        self.driver = webdriver.Chrome(options=chrome_options)
 
+        # ---- Only add these when headless is explicitly requested ----
+        if headless:
+            chrome_options.add_argument("--headless=new")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-extensions")
+            chrome_options.add_argument("--remote-debugging-port=9222")
+
+        # Try normal launch first, fallback to headless if it crashes
+        try:
+            self.driver = webdriver.Chrome(options=chrome_options)
+        except Exception as e:
+            print(f"⚠️ Primary Chrome launch failed: {e}")
+            print("🔁 Retrying with safe headless config...")
+
+            fallback_options = Options()
+            fallback_options.add_argument("--headless=new")
+            fallback_options.add_argument("--no-sandbox")
+            fallback_options.add_argument("--disable-dev-shm-usage")
+            fallback_options.add_argument("--disable-gpu")
+            fallback_options.add_argument("--window-size=1920,1080")
+            fallback_options.add_argument("--disable-blink-features=AutomationControlled")
+
+            self.driver = webdriver.Chrome(options=fallback_options)
 
         self.driver.set_page_load_timeout(60)
         self.wait = WebDriverWait(self.driver, DEFAULT_TIMEOUT)
