@@ -52,9 +52,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter108",
-    'email': "ai.dexter108@worldposta.com",
-    'company': "AI Company dexter108",
+    'full_name': "AI dexter109",
+    'email': "ai.dexter109@worldposta.com",
+    'company': "AI Company dexter109",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
@@ -131,7 +131,7 @@ class WorldPostaAutomationBot:
         chrome_options = Options()
 
                 # Headless mode for GitHub Actions
-        chrome_options.add_argument("--headless=new")
+        
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
@@ -380,6 +380,10 @@ class WorldPostaAutomationBot:
                 print("🔄 Refreshing inbox...")
                 self.driver.refresh()
                 random_delay(3, 5)
+
+                print("📄 CURRENT URL:", self.driver.current_url)
+                print("📌 PAGE TITLE:", self.driver.title)
+
 
                 # Try to access Shadow DOM
             try:
