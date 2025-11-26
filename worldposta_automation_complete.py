@@ -125,14 +125,14 @@ def get_screenshot_filename(email, status):
 # =====================================================
 
 class WorldPostaAutomationBot:
-    def __init__(self, headless=False):
+    def _init_(self, headless=False):
         """Initialize automation bot with undetected Chrome"""
         print("🌐 Launching Chrome browser...")
 
         chrome_options = Options()
-        
+
         # Headless mode for GitHub Actions
-        
+        chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
@@ -142,12 +142,11 @@ class WorldPostaAutomationBot:
         # Optional but good
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
-       # Random window size (still works in headless)
+        # Random window size (still works in headless)
         chrome_options.add_argument("--window-size=1920,1080")
+
         self.driver = webdriver.Chrome(options=chrome_options)
 
-
-        
         self.driver.set_page_load_timeout(60)
         self.wait = WebDriverWait(self.driver, DEFAULT_TIMEOUT)
 
