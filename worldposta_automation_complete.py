@@ -111,17 +111,7 @@ class WorldPostaAutomationBot:
 
         ensure_directory(SCREENSHOT_DIR)
 
-        # Chrome flags
-        options = uc.ChromeOptions()
-        options.add_argument("--disable-blink-features=AutomationControlled")
-        options.add_argument("--disable-extensions")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--window-size=1920,1080")
-
-        if headless:
-            options.add_argument("--headless=new")
+    
 
         # ============================================================
         # ✔ Use system Chrome installed via apt-get on GitHub Actions
