@@ -52,9 +52,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter106",
-    'email': "ai.dexter106@worldposta.com",
-    'company': "AI Company dexter106",
+    'full_name': "AI dexter107",
+    'email': "ai.dexter107@worldposta.com",
+    'company': "AI Company dexter107",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
