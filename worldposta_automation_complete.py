@@ -37,7 +37,7 @@ LOGIN_URL = "https://admin.worldposta.com/auth/login"
 
 # Email Settings
 EMAIL_DOMAIN = "@worldposta.com"
-EMAIL_SUBJECT_KEYWORD = "registration confirmation"
+EMAIL_SUBJECT_KEYWORD = "Welcome To Worldposta"
 
 # Timeouts
 EMAIL_WAIT_TIMEOUT = 300  # seconds to wait for verification email (5 minutes)
@@ -53,9 +53,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter113",
-    'email': "ai.dexter113@worldposta.com",
-    'company': "AI Company dexter113",
+    'full_name': "AI dexter114",
+    'email': "ai.dexter114@worldposta.com",
+    'company': "AI Company dexter114",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
@@ -395,63 +395,51 @@ class WorldPostaAutomationBot:
     
 
     def find_verification_email(self, timeout=EMAIL_WAIT_TIMEOUT):
-        """Find and open the verification email in OWA Classic Inbox"""
         print("\n" + "="*60)
-        print("🔍 STEP 3: FINDING VERIFICATION EMAIL")
+        print("🔍 STEP 3: FINDING VERIFICATION EMAIL (Shadow DOM Mode)")
         print("="*60)
 
         print(f"🔎 Looking for email with subject containing: '{EMAIL_SUBJECT_KEYWORD}'")
         print(f"⏱️  Maximum wait time: {timeout} seconds")
 
-        start_time = time.time()
+        start = time.time()
         attempt = 0
 
-        while time.time() - start_time < timeout:
+        while time.time() - start < timeout:
             attempt += 1
-            elapsed = int(time.time() - start_time)
+            elapsed = int(time.time() - start)
+            print(f"\n🔄 Attempt {attempt} (elapsed {elapsed}s/{timeout}s)")
 
-            print(f"\n🔄 Attempt {attempt} (elapsed: {elapsed}s / {timeout}s)")
+            # Refresh inbox
             self.driver.refresh()
             random_delay(3, 5)
 
-            print("📄 CURRENT URL:", self.driver.current_url)
-            print("📌 PAGE TITLE:", self.driver.title)
+            try:
+                # STEP 1: Find <mail-app>
+                root_app = self.wait.until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "mail-app"))
+                )
+                shadow_app = self.driver.execute_script("return arguments[0].shadowRoot", root_app)
 
-            # ░░ RESET FRAME CONTEXT ░░
-            self.driver.switch_to.default_content()
+                print("  ✔ mail-app shadowRoot OK")
 
-            # ░░ FIND THE OWA INBOX IFRAME ░░
-            iframes = self.driver.find_elements(By.TAG_NAME, "iframe")
-            print(f"📥 Found {len(iframes)} iframes")
+                # STEP 2: Find <mail-list>
+                mail_list = shadow_app.find_element(By.CSS_SELECTOR, "mail-list")
+                shadow_list = self.driver.execute_script("return arguments[0].shadowRoot", mail_list)
 
-            inbox_iframe = None
-            for f in iframes:
-                src = (f.get_attribute("src") or "").lower()
-                print(f"   🔍 iframe src: {src}")
-                if "mail" in src or "owa" in src or "prem" in src:
-                    inbox_iframe = f
-                    break
+                print("  ✔ mail-list shadowRoot OK")
 
-            if inbox_iframe:
-                print("📥 Switching into inbox iframe...")
-                self.driver.switch_to.frame(inbox_iframe)
-            else:
-                print("⚠ No inbox iframe found. Waiting 10 sec...")
-                time.sleep(10)
-                continue
+                # STEP 3: Find email rows inside Shadow DOM
+                rows = shadow_list.find_elements(By.CSS_SELECTOR, "div[role='option']")
+                print(f"  📬 Found {len(rows)} email rows")
 
-            # ░░ SELECTOR FOR OWA CLASSIC EMAIL ROWS ░░
-            email_rows = self.driver.find_elements(By.CSS_SELECTOR, "tr.lvRow")
-            print(f"📬 Found {len(email_rows)} email rows")
-
-            for row in email_rows:
-                try:
+                for row in rows:
                     text = row.text.lower()
                     if EMAIL_SUBJECT_KEYWORD.lower() in text:
                         print("🎉 FOUND VERIFICATION EMAIL!")
-                        print(f"📧 Text: {row.text[:100]}")
+                        print("📧 Text:", row.text[:120])
 
-                        # Click the email
+                        # Scroll & click
                         self.driver.execute_script(
                             "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
                             row
@@ -460,6 +448,7 @@ class WorldPostaAutomationBot:
                         row.click()
                         random_delay(3, 5)
 
+                        # Screenshot
                         screenshot_path = os.path.join(
                             SCREENSHOT_DIR,
                             get_screenshot_filename(self.account_data['email'], 'email_found')
@@ -468,15 +457,16 @@ class WorldPostaAutomationBot:
                         print(f"📸 Screenshot saved: {screenshot_path}")
 
                         return True
-                except:
-                    continue                       
-                # Wait before next attempt
-                print(f"⏳ Email not found yet, waiting 15 seconds before retry...")
+
+                print("⏳ No matching email yet — waiting 15 seconds...")
                 time.sleep(15)
 
-            print("❌ Verification email not found after timeout.")
-            self.status_log['error_message'] = "Verification email not found"
-            return False
+            except Exception as e:
+                print("⚠ Shadow DOM lookup failed:", e)
+                time.sleep(10)
+
+        print("❌ Verification email NOT found after timeout.")
+        return False
 
 
     def extract_verification_link(self):
