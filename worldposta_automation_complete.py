@@ -52,9 +52,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter109",
-    'email': "ai.dexter109@worldposta.com",
-    'company': "AI Company dexter109",
+    'full_name': "AI dexter110",
+    'email': "ai.dexter111@worldposta.com",
+    'company': "AI Company dexter112",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
@@ -304,9 +304,9 @@ class WorldPostaAutomationBot:
 
             return False
 
-
     def login_to_email(self, email, password):
-        """Login to WorldPosta webmail"""
+
+        """Login to WorldPosta webmail (OWA Classic)"""
         print("\n" + "="*60)
         print("📬 STEP 2: EMAIL LOGIN")
         print("="*60)
@@ -314,62 +314,55 @@ class WorldPostaAutomationBot:
         try:
             print(f"🔗 Navigating to: {EMAIL_LOGIN_URL}")
             self.driver.get(EMAIL_LOGIN_URL)
-            random_delay(3, 5)
+            random_delay(2, 4)
 
-            # Enter username
-            print(f"📧 Entering email: {email}")
-            username_input = self.wait.until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, 'input#username'))
+            print("📄 URL:", self.driver.current_url)
+            print("📌 Title:", self.driver.title)
+
+            # --- Fill username ---
+            username = self.wait.until(
+                EC.presence_of_element_located((By.ID, "username"))
             )
-            human_like_mouse_move(self.driver, username_input)
-            username_input.click()
-            random_delay(0.3, 0.6)
-            human_like_typing(username_input, email)
+            username.clear()
+            username.send_keys(email)
+
+            # --- Fill password ---
+            password_input = self.driver.find_element(By.ID, "password")
+            password_input.clear()
+            password_input.send_keys(password)
+
             random_delay(0.5, 1)
 
-            # Enter password
-            print(f"🔑 Entering password")
-            password_input = self.driver.find_element(By.CSS_SELECTOR, 'input#password')
-            human_like_mouse_move(self.driver, password_input)
-            password_input.click()
-            random_delay(0.3, 0.6)
-            human_like_typing(password_input, password)
-            random_delay(1, 2)
+            # --- Submit using ENTER instead of JS click ---
+            print("🔓 Submitting login form with ENTER key...")
+            password_input.send_keys("\n")
 
-            # Click login button
-            print("🔓 Clicking login button...")
-            login_button = self.driver.find_element(By.CSS_SELECTOR, 'div.signinbutton[onclick="clkLgn()"]')
-            human_like_mouse_move(self.driver, login_button)
-            random_delay(0.3, 0.7)
-            self.driver.execute_script("arguments[0].click();", login_button)
+            random_delay(5, 7)
 
-            print("⏳ Waiting for email inbox to load...")
-            random_delay(5, 8)
+            print("📄 URL after login:", self.driver.current_url)
+            print("📌 Title after login:", self.driver.title)
 
-            # Take screenshot
+            # Check if login succeeded (OWA inbox contains "owa/#path=/mail")
+            if "/owa/#path=/mail" in self.driver.current_url:
+                print("✅ Email login successful — inbox loaded.")
+            else:
+                print("❌ Login did not reach inbox.")
+                screenshot_path = os.path.join(SCREENSHOT_DIR, get_screenshot_filename(email, 'email_login_failed'))
+                self.driver.save_screenshot(screenshot_path)
+                print(f"📸 Saved screenshot for debugging: {screenshot_path}")
+                return False
+
+            # Screenshot success
             screenshot_path = os.path.join(SCREENSHOT_DIR, get_screenshot_filename(email, 'email_login'))
             self.driver.save_screenshot(screenshot_path)
             print(f"📸 Screenshot saved: {screenshot_path}")
 
-            print("✅ Email login successful")
             return True
 
         except Exception as e:
-            error_msg = f"Email login failed: {e}"
-            print(f"❌ {error_msg}")
-            self.status_log['error_message'] = error_msg
-
-            # Take error screenshot
-            try:
-                screenshot_path = os.path.join(SCREENSHOT_DIR, get_screenshot_filename(email, 'email_login_error'))
-                self.driver.save_screenshot(screenshot_path)
-                self.status_log['screenshot_path'] = screenshot_path
-                print(f"📸 Error screenshot saved: {screenshot_path}")
-            except:
-                pass
-
+            print(f"❌ Email login failed: {e}")
+            self.status_log['error_message'] = str(e)
             return False
-
 
     def find_verification_email(self, timeout=EMAIL_WAIT_TIMEOUT):
         """Find and open the verification email in inbox"""
