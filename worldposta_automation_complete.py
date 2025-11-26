@@ -125,7 +125,7 @@ def get_screenshot_filename(email, status):
 # =====================================================
 
 class WorldPostaAutomationBot:
-    def _init_(self, headless=False):
+    def __init__(self, headless=False):
         """Initialize automation bot with undetected Chrome"""
         print("🌐 Launching Chrome browser...")
 
