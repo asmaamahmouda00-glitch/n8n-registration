@@ -36,7 +36,7 @@ LOGIN_URL = "https://admin.worldposta.com/auth/login"
 
 # Email Settings
 EMAIL_DOMAIN = "@worldposta.com"
-EMAIL_SUBJECT_KEYWORD = "Welcome To WorldPosta"
+EMAIL_SUBJECT_KEYWORD = "registration confirmation"
 
 # Timeouts
 EMAIL_WAIT_TIMEOUT = 300  # seconds to wait for verification email (5 minutes)
@@ -52,9 +52,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter105",
-    'email': "ai.dexter105@worldposta.com",
-    'company': "AI Company dexter105",
+    'full_name': "AI dexter106",
+    'email': "ai.dexter106@worldposta.com",
+    'company': "AI Company dexter106",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
@@ -383,14 +383,13 @@ class WorldPostaAutomationBot:
 
                 # Try multiple selectors for email rows
                 email_selectors = [
-                    'div[role="listitem"]',
-                    'div[role="option"]',
-                    'div.ms-List-cell',
-                    'div._lvv_K _lvv_Q',
-                    'tr[role="row"]',
-                    'div[data-convid]',
-                    'div.customScrollBar div[tabindex]'
+                    'div[role="option"]',                    # the actual email row
+                    'span[autoid="_lvv_5"]',                 # subject span
+                    'span.lvHighlightFromClass',             # class used for subject highlight
+                    'span.lvHighlightSubjectClass',          # class used for preview highlight
+                    'div._lvv_w._lvv_z',                     # email container class
                 ]
+
 
                 email_found = False
 
