@@ -53,9 +53,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter117",
-    'email': "ai.dexter117@worldposta.com",
-    'company': "AI Company dexter117",
+    'full_name': "AI dexter118",
+    'email': "ai.dexter118@worldposta.com",
+    'company': "AI Company dexter118",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
@@ -408,81 +408,78 @@ class WorldPostaAutomationBot:
     
     def find_verification_email(self, timeout=EMAIL_WAIT_TIMEOUT):
         print("\n" + "="*60)
-        print("🔍 STEP 3: FINDING VERIFICATION EMAIL (Shadow DOM Deep Scan)")
+        print("🔍 STEP 3: FINDING VERIFICATION EMAIL (Real OWA Selector Mode)")
         print("="*60)
 
-        TARGET = EMAIL_SUBJECT_KEYWORD.lower()
+        SUBJECT = EMAIL_SUBJECT_KEYWORD.lower()
         start = time.time()
         attempt = 0
 
+        ROW = 'div[autoid="_lvv_3"][role="option"]'
+        SUBJECT_SPANS = 'span[autoid="_lvv_6"], span[autoid="_lvv_5"], span[autoid="_lvv_7"]'
+
         while time.time() - start < timeout:
             attempt += 1
-            print(f"\n🔄 Attempt {attempt} (elapsed {int(time.time() - start)}s/{timeout}s)")
+            elapsed = int(time.time() - start)
+            print(f"\n🔄 Attempt {attempt} (elapsed {elapsed}s/{timeout}s)")
 
             try:
                 self.driver.refresh()
                 time.sleep(3)
 
-                # 1) ACCESS SHADOW DOM
-                container = self.find_in_shadow_dom([
-                    "mail-app",
-                    "mail-list",
-                    "div[autoid='_lvv_8']"
-                ])
-
-                if not container:
-                    print("⚠ Unable to access OWA conversation list — Shadow DOM not ready.")
+                # Wait up to 15 seconds for ANY email row to appear
+                try:
+                    WebDriverWait(self.driver, 15).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, ROW))
+                    )
+                except:
+                    print("📭 No rows loaded yet (AJAX still loading).")
                     time.sleep(5)
                     continue
 
-                # 2) GET ALL EMAIL ROWS
-                rows = self.driver.execute_script(
-                    "return arguments[0].querySelectorAll('div[autoid=\"_lvv_3\"]');",
-                    container
-                )
+                rows = self.driver.find_elements(By.CSS_SELECTOR, ROW)
+                print(f"📨 Found {len(rows)} email rows")
 
-                print(f"📨 Found {len(rows)} email rows inside Shadow DOM")
-
-                # 3) CHECK EACH ROW FOR SUBJECT
                 for row in rows:
-                    subject = self.driver.execute_script(
-                        """
-                        let s1 = arguments[0].querySelector('span[autoid="_lvv_6"]');
-                        let s2 = arguments[0].querySelector('span[autoid="_lvv_5"]');
-                        let s3 = arguments[0].querySelector('span[autoid="_lvv_7"]');
-                        let t = "";
-                        if (s1) t += s1.textContent + " ";
-                        if (s2) t += s2.textContent + " ";
-                        if (s3) t += s3.textContent + " ";
-                        return t.toLowerCase();
-                        """,
-                        row
-                    )
+                    try:
+                        subjects = row.find_elements(By.CSS_SELECTOR, SUBJECT_SPANS)
+                        full_text = " ".join([s.text.strip() for s in subjects if s.text.strip()])
+                        full_text_lower = full_text.lower()
 
-                    print("   •", subject[:80])
+                        print(f"   • Row text: {full_text[:80]}")
 
-                    if TARGET in subject:
-                        print("🎉 FOUND VERIFICATION EMAIL!")
+                        if SUBJECT in full_text_lower:
+                            print("🎉 FOUND VERIFICATION EMAIL!")
+                            print("📧 Full:", full_text)
 
-                        # click email
-                        self.driver.execute_script(
-                            "arguments[0].scrollIntoView({behavior:'smooth',block:'center'});",
-                            row
-                        )
-                        time.sleep(1)
-                        self.driver.execute_script("arguments[0].click();", row)
-                        time.sleep(3)
+                            self.driver.execute_script(
+                                "arguments[0].scrollIntoView({behavior:'smooth',block:'center'});",
+                                row
+                            )
+                            time.sleep(1)
+                            row.click()
+                            time.sleep(3)
 
-                        return True
+                            screenshot_path = os.path.join(
+                                SCREENSHOT_DIR,
+                                get_screenshot_filename(self.account_data['email'], 'email_found')
+                            )
+                            self.driver.save_screenshot(screenshot_path)
+                            print("📸 Screenshot saved.")
 
-                print("⏳ Not found yet… waiting 12 seconds.")
-                time.sleep(12)
+                            return True
+
+                    except Exception as e:
+                        print("⚠ Row parse error:", e)
+
+                print("⏳ Email not found yet… waiting 10 sec")
+                time.sleep(10)
 
             except Exception as e:
-                print("⚠ Shadow DOM error:", e)
-                time.sleep(5)
+                print("⚠ Inbox scan error:", e)
+                time.sleep(10)
 
-        print("❌ Verification email not found after timeout.")
+        print("❌ Verification email NOT found after timeout.")
         return False
 
 
