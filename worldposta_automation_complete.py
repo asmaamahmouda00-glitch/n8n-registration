@@ -396,26 +396,15 @@ class WorldPostaAutomationBot:
 
     def find_verification_email(self, timeout=EMAIL_WAIT_TIMEOUT):
         print("\n" + "="*60)
-        print("🔍 STEP 3: FINDING VERIFICATION EMAIL (Selector Mode)")
+        print("🔍 STEP 3: FINDING VERIFICATION EMAIL (Ultra-Precise Selector Mode)")
         print("="*60)
 
-        print(f"🔎 Looking for email with subject containing: '{EMAIL_SUBJECT_KEYWORD}'")
-        print(f"⏱️  Maximum wait time: {timeout} seconds")
-
+        SUBJECT = EMAIL_SUBJECT_KEYWORD.lower()
         start_time = time.time()
         attempt = 0
 
-        # All possible selectors for OWA email rows
-        EMAIL_ROW_SELECTORS = [
-            "div[role='option']",
-            "div.lvRow",                   # older OWA
-            "div._lvv_5",                  # subject area
-            "div._lvv_w._lvv_z",           # row container
-            "span.lvHighlightSubjectClass",
-            "span[autoid='_lvv_5']",
-            "div[autoid='_lvv_3']",
-            "div[autoid='_lvv_4']",
-        ]
+        ROW_SELECTOR = 'div[autoid="_lvv_3"][role="option"]'
+        SUBJECT_SELECTOR = 'span[autoid="_lvv_6"], span[autoid="_lvv_5"], span[autoid="_lvv_7"]'
 
         while time.time() - start_time < timeout:
             attempt += 1
@@ -423,56 +412,57 @@ class WorldPostaAutomationBot:
             print(f"\n🔄 Attempt {attempt} (elapsed: {elapsed}s / {timeout}s)")
 
             try:
-                # Refresh inbox
                 self.driver.refresh()
                 time.sleep(3)
 
-                email_found = False
+                rows = self.driver.find_elements(By.CSS_SELECTOR, ROW_SELECTOR)
+                print(f"📨 Found {len(rows)} email rows using selector: {ROW_SELECTOR}")
 
-                for selector in EMAIL_ROW_SELECTORS:
-                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                    print(f"   📋 Found {len(elements)} elements for selector: {selector}")
+                for row in rows:
+                    try:
+                        # Find all subject text spans inside this row
+                        subjects = row.find_elements(By.CSS_SELECTOR, SUBJECT_SELECTOR)
 
-                    for elem in elements:
-                        text = elem.text.strip().lower()
+                        full_text = " ".join([s.text.strip() for s in subjects if s.text.strip()])
+                        full_text_lower = full_text.lower()
 
-                        if not text:
-                            continue
+                        print(f"   • Email text: {full_text[:80]}")
 
-                        # Match subject keyword
-                        if EMAIL_SUBJECT_KEYWORD.lower() in text:
+                        # If the subject contains our keyword
+                        if SUBJECT in full_text_lower:
                             print("🎉 FOUND VERIFICATION EMAIL!")
-                            print("📧 Email Preview:", text[:120])
+                            print("📧 Full text:", full_text)
 
-                            # Scroll into view
+                            # Scroll and click
                             self.driver.execute_script(
-                                "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", elem
+                                "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", row
                             )
                             time.sleep(1)
-
-                            # Click to open email
-                            elem.click()
+                            row.click()
                             time.sleep(3)
 
-                            # Take screenshot
                             screenshot_path = os.path.join(
                                 SCREENSHOT_DIR,
-                                get_screenshot_filename(self.account_data['email'], "email_found")
+                                get_screenshot_filename(self.account_data['email'], 'email_found')
                             )
                             self.driver.save_screenshot(screenshot_path)
                             print(f"📸 Screenshot saved: {screenshot_path}")
 
                             return True
 
-                print("⏳ Email not found yet... retrying in 15 seconds.")
-                time.sleep(15)
+                    except Exception as e:
+                        print("⚠️ Error reading row:", e)
+
+                print("⏳ Email not found yet... waiting 12 seconds...")
+                time.sleep(12)
 
             except Exception as e:
-                print("⚠ Error during email scan:", e)
+                print(f"⚠️ Inbox scan error: {e}")
                 time.sleep(10)
 
         print("❌ Verification email NOT found after timeout.")
         return False
+
 
 
 
