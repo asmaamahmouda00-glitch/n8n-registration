@@ -53,9 +53,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter112",
-    'email': "ai.dexter112@worldposta.com",
-    'company': "AI Company dexter112",
+    'full_name': "AI dexter113",
+    'email': "ai.dexter113@worldposta.com",
+    'company': "AI Company dexter113",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
@@ -392,8 +392,10 @@ class WorldPostaAutomationBot:
             print(f"⚠️ Could not complete language/timezone selection: {e}")
             return False
 
+    
+
     def find_verification_email(self, timeout=EMAIL_WAIT_TIMEOUT):
-        """Find and open the verification email in inbox"""
+        """Find and open the verification email in OWA Classic Inbox"""
         print("\n" + "="*60)
         print("🔍 STEP 3: FINDING VERIFICATION EMAIL")
         print("="*60)
@@ -404,90 +406,76 @@ class WorldPostaAutomationBot:
         start_time = time.time()
         attempt = 0
 
-        try:
-            while time.time() - start_time < timeout:
-                attempt += 1
-                elapsed = int(time.time() - start_time)
-                print(f"\n🔄 Attempt {attempt} (elapsed: {elapsed}s / {timeout}s)")
+        while time.time() - start_time < timeout:
+            attempt += 1
+            elapsed = int(time.time() - start_time)
 
-                # Refresh inbox
-                print("🔄 Refreshing inbox...")
-                self.driver.refresh()
-                random_delay(3, 5)
+            print(f"\n🔄 Attempt {attempt} (elapsed: {elapsed}s / {timeout}s)")
+            self.driver.refresh()
+            random_delay(3, 5)
 
-                print("📄 CURRENT URL:", self.driver.current_url)
-                print("📌 PAGE TITLE:", self.driver.title)
+            print("📄 CURRENT URL:", self.driver.current_url)
+            print("📌 PAGE TITLE:", self.driver.title)
 
+            # ░░ RESET FRAME CONTEXT ░░
+            self.driver.switch_to.default_content()
 
-                # Try multiple selectors for email rows
-                email_selectors = [
-                    'div[role="option"]',                    # the actual email row
-                    'span[autoid="_lvv_5"]',                 # subject span
-                    'span.lvHighlightFromClass',             # class used for subject highlight
-                    'span.lvHighlightSubjectClass',          # class used for preview highlight
-                    'div._lvv_w._lvv_z',                     # email container class
-                ]
+            # ░░ FIND THE OWA INBOX IFRAME ░░
+            iframes = self.driver.find_elements(By.TAG_NAME, "iframe")
+            print(f"📥 Found {len(iframes)} iframes")
 
+            inbox_iframe = None
+            for f in iframes:
+                src = (f.get_attribute("src") or "").lower()
+                print(f"   🔍 iframe src: {src}")
+                if "mail" in src or "owa" in src or "prem" in src:
+                    inbox_iframe = f
+                    break
 
-                email_found = False
+            if inbox_iframe:
+                print("📥 Switching into inbox iframe...")
+                self.driver.switch_to.frame(inbox_iframe)
+            else:
+                print("⚠ No inbox iframe found. Waiting 10 sec...")
+                time.sleep(10)
+                continue
 
-                for selector in email_selectors:
-                    try:
-                        email_elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                        print(f"   📋 Found {len(email_elements)} elements with selector: {selector}")
+            # ░░ SELECTOR FOR OWA CLASSIC EMAIL ROWS ░░
+            email_rows = self.driver.find_elements(By.CSS_SELECTOR, "tr.lvRow")
+            print(f"📬 Found {len(email_rows)} email rows")
 
-                        for idx, elem in enumerate(email_elements):
-                            try:
-                                elem_text = elem.text
-                                if EMAIL_SUBJECT_KEYWORD.lower() in elem_text.lower():
-                                    print(f"✅ Found verification email!")
-                                    print(f"📧 Element text: {elem_text[:100]}...")
+            for row in email_rows:
+                try:
+                    text = row.text.lower()
+                    if EMAIL_SUBJECT_KEYWORD.lower() in text:
+                        print("🎉 FOUND VERIFICATION EMAIL!")
+                        print(f"📧 Text: {row.text[:100]}")
 
-                                    # Scroll to element
-                                    self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", elem)
-                                    random_delay(1, 2)
+                        # Click the email
+                        self.driver.execute_script(
+                            "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
+                            row
+                        )
+                        random_delay(1, 2)
+                        row.click()
+                        random_delay(3, 5)
 
-                                    # Click to open
-                                    print("🖱️  Clicking to open email...")
-                                    human_like_mouse_move(self.driver, elem)
-                                    random_delay(0.5, 1)
-                                    elem.click()
-                                    random_delay(3, 5)
+                        screenshot_path = os.path.join(
+                            SCREENSHOT_DIR,
+                            get_screenshot_filename(self.account_data['email'], 'email_found')
+                        )
+                        self.driver.save_screenshot(screenshot_path)
+                        print(f"📸 Screenshot saved: {screenshot_path}")
 
-                                    # Take screenshot
-                                    screenshot_path = os.path.join(SCREENSHOT_DIR, get_screenshot_filename(self.account_data['email'], 'email_found'))
-                                    self.driver.save_screenshot(screenshot_path)
-                                    print(f"📸 Screenshot saved: {screenshot_path}")
-
-                                    email_found = True
-                                    break
-                            except Exception as e:
-                                continue
-
-                        if email_found:
-                            break
-
-                    except Exception as e:
-                        continue
-
-                if email_found:
-                    print("✅ Verification email opened successfully")
-                    return True
-
+                        return True
+                except:
+                    continue                       
                 # Wait before next attempt
                 print(f"⏳ Email not found yet, waiting 15 seconds before retry...")
                 time.sleep(15)
 
-            # Timeout reached
-            error_msg = f"Verification email not found after {timeout} seconds"
-            print(f"❌ {error_msg}")
-            self.status_log['error_message'] = error_msg
-            return False
-
-        except Exception as e:
-            error_msg = f"Error finding verification email: {e}"
-            print(f"❌ {error_msg}")
-            self.status_log['error_message'] = error_msg
+            print("❌ Verification email not found after timeout.")
+            self.status_log['error_message'] = "Verification email not found"
             return False
 
 
