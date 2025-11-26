@@ -53,9 +53,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter114",
-    'email': "ai.dexter114@worldposta.com",
-    'company': "AI Company dexter114",
+    'full_name': "AI dexter115",
+    'email': "ai.dexter115@worldposta.com",
+    'company': "AI Company dexter115",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
@@ -396,77 +396,84 @@ class WorldPostaAutomationBot:
 
     def find_verification_email(self, timeout=EMAIL_WAIT_TIMEOUT):
         print("\n" + "="*60)
-        print("🔍 STEP 3: FINDING VERIFICATION EMAIL (Shadow DOM Mode)")
+        print("🔍 STEP 3: FINDING VERIFICATION EMAIL (Selector Mode)")
         print("="*60)
 
         print(f"🔎 Looking for email with subject containing: '{EMAIL_SUBJECT_KEYWORD}'")
         print(f"⏱️  Maximum wait time: {timeout} seconds")
 
-        start = time.time()
+        start_time = time.time()
         attempt = 0
 
-        while time.time() - start < timeout:
-            attempt += 1
-            elapsed = int(time.time() - start)
-            print(f"\n🔄 Attempt {attempt} (elapsed {elapsed}s/{timeout}s)")
+        # All possible selectors for OWA email rows
+        EMAIL_ROW_SELECTORS = [
+            "div[role='option']",
+            "div.lvRow",                   # older OWA
+            "div._lvv_5",                  # subject area
+            "div._lvv_w._lvv_z",           # row container
+            "span.lvHighlightSubjectClass",
+            "span[autoid='_lvv_5']",
+            "div[autoid='_lvv_3']",
+            "div[autoid='_lvv_4']",
+        ]
 
-            # Refresh inbox
-            self.driver.refresh()
-            random_delay(3, 5)
+        while time.time() - start_time < timeout:
+            attempt += 1
+            elapsed = int(time.time() - start_time)
+            print(f"\n🔄 Attempt {attempt} (elapsed: {elapsed}s / {timeout}s)")
 
             try:
-                # STEP 1: Find <mail-app>
-                root_app = self.wait.until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, "mail-app"))
-                )
-                shadow_app = self.driver.execute_script("return arguments[0].shadowRoot", root_app)
+                # Refresh inbox
+                self.driver.refresh()
+                time.sleep(3)
 
-                print("  ✔ mail-app shadowRoot OK")
+                email_found = False
 
-                # STEP 2: Find <mail-list>
-                mail_list = shadow_app.find_element(By.CSS_SELECTOR, "mail-list")
-                shadow_list = self.driver.execute_script("return arguments[0].shadowRoot", mail_list)
+                for selector in EMAIL_ROW_SELECTORS:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    print(f"   📋 Found {len(elements)} elements for selector: {selector}")
 
-                print("  ✔ mail-list shadowRoot OK")
+                    for elem in elements:
+                        text = elem.text.strip().lower()
 
-                # STEP 3: Find email rows inside Shadow DOM
-                rows = shadow_list.find_elements(By.CSS_SELECTOR, "div[role='option']")
-                print(f"  📬 Found {len(rows)} email rows")
+                        if not text:
+                            continue
 
-                for row in rows:
-                    text = row.text.lower()
-                    if EMAIL_SUBJECT_KEYWORD.lower() in text:
-                        print("🎉 FOUND VERIFICATION EMAIL!")
-                        print("📧 Text:", row.text[:120])
+                        # Match subject keyword
+                        if EMAIL_SUBJECT_KEYWORD.lower() in text:
+                            print("🎉 FOUND VERIFICATION EMAIL!")
+                            print("📧 Email Preview:", text[:120])
 
-                        # Scroll & click
-                        self.driver.execute_script(
-                            "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
-                            row
-                        )
-                        random_delay(1, 2)
-                        row.click()
-                        random_delay(3, 5)
+                            # Scroll into view
+                            self.driver.execute_script(
+                                "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", elem
+                            )
+                            time.sleep(1)
 
-                        # Screenshot
-                        screenshot_path = os.path.join(
-                            SCREENSHOT_DIR,
-                            get_screenshot_filename(self.account_data['email'], 'email_found')
-                        )
-                        self.driver.save_screenshot(screenshot_path)
-                        print(f"📸 Screenshot saved: {screenshot_path}")
+                            # Click to open email
+                            elem.click()
+                            time.sleep(3)
 
-                        return True
+                            # Take screenshot
+                            screenshot_path = os.path.join(
+                                SCREENSHOT_DIR,
+                                get_screenshot_filename(self.account_data['email'], "email_found")
+                            )
+                            self.driver.save_screenshot(screenshot_path)
+                            print(f"📸 Screenshot saved: {screenshot_path}")
 
-                print("⏳ No matching email yet — waiting 15 seconds...")
+                            return True
+
+                print("⏳ Email not found yet... retrying in 15 seconds.")
                 time.sleep(15)
 
             except Exception as e:
-                print("⚠ Shadow DOM lookup failed:", e)
+                print("⚠ Error during email scan:", e)
                 time.sleep(10)
 
         print("❌ Verification email NOT found after timeout.")
         return False
+
 
 
     def extract_verification_link(self):
