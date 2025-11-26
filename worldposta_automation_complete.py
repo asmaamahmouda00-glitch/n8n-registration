@@ -111,13 +111,7 @@ class WorldPostaAutomationBot:
 
         ensure_directory(SCREENSHOT_DIR)
 
-    
-
-        # ============================================================
-        # ✔ Use system Chrome installed via apt-get on GitHub Actions
-        # ============================================================
         browser_executable_path = "/usr/bin/google-chrome"
-        print("🌐 Launching Chrome (system installation)...")
 
         options = uc.ChromeOptions()
         options.add_argument("--disable-blink-features=AutomationControlled")
@@ -130,15 +124,11 @@ class WorldPostaAutomationBot:
         if headless:
             options.add_argument("--headless=new")
 
-        # 💡 The correct UC launcher for system Chrome:
-        self.driver = uc.Chrome(options=options, driver_executable_path=None, browser_executable_path="/usr/bin/google-chrome")
-
-
-        # LAUNCH FIXED UC CHROME
+        # ✅ FINAL WORKING LAUNCHER (only one)
         self.driver = uc.Chrome(
             options=options,
             browser_executable_path=browser_executable_path,
-            driver_executable_path=driver_executable_path,
+            driver_executable_path=None,   # UC auto-installs matching driver
             use_subprocess=True
         )
 
@@ -146,6 +136,7 @@ class WorldPostaAutomationBot:
         self.wait = WebDriverWait(self.driver, DEFAULT_TIMEOUT)
 
         print("✅ Chrome launched successfully using system installation")
+
     # =====================================================
     # STEP 1 — REGISTRATION
     # =====================================================
