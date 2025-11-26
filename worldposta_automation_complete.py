@@ -381,6 +381,23 @@ class WorldPostaAutomationBot:
                 self.driver.refresh()
                 random_delay(3, 5)
 
+                # --- NEW: Switch to inbox iframe ---
+                self.driver.switch_to.default_content()
+                iframes = self.driver.find_elements(By.TAG_NAME, "iframe")
+                print(f"📥 Found {len(iframes)} iframes on page")
+
+                for idx, frame in enumerate(iframes):
+                    src = frame.get_attribute("src")
+                    print(f"   👉 iframe[{idx}] src={src}")
+
+                    # Try to detect the mail iframe
+                    if src and ("mail" in src.lower() or "owa" in src.lower() or "inbox" in src.lower()):
+                        print(f"📥 Switching into iframe[{idx}]")
+                        self.driver.switch_to.frame(frame)
+                        break
+                else:
+                    print("⚠️ No mail iframe found — staying in default content.")
+
                 # Try multiple selectors for email rows
                 email_selectors = [
                     'div[role="option"]',                    # the actual email row
