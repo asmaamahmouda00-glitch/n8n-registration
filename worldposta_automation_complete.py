@@ -415,6 +415,8 @@ class WorldPostaAutomationBot:
         start = time.time()
         attempt = 0
 
+        INBOX_CONTAINER = 'div[autoid="_lvv_8"][role="listbox"]'
+        SCROLL_CONTAINER = 'div._lvv_W.customScrollBar.scrollContainer'
         ROW = 'div[autoid="_lvv_3"][role="option"]'
         SUBJECT_SPANS = 'span[autoid="_lvv_6"], span[autoid="_lvv_5"], span[autoid="_lvv_7"]'
 
@@ -427,28 +429,51 @@ class WorldPostaAutomationBot:
                 self.driver.refresh()
                 time.sleep(3)
 
-                # Wait up to 15 seconds for ANY email row to appear
+                # 1️⃣ Wait for inbox container
                 try:
-                    WebDriverWait(self.driver, 15).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, ROW))
+                    WebDriverWait(self.driver, 20).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, INBOX_CONTAINER))
                     )
+                    print("📦 Inbox container found.")
                 except:
-                    print("📭 No rows loaded yet (AJAX still loading).")
-                    time.sleep(5)
+                    print("❌ Inbox container NOT found yet.")
+                    time.sleep(6)
                     continue
 
+                # 2️⃣ Wait for scroll container
+                try:
+                    WebDriverWait(self.driver, 20).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, SCROLL_CONTAINER))
+                    )
+                    print("📜 Scroll container found.")
+                except:
+                    print("❌ Scroll container NOT found yet.")
+                    time.sleep(6)
+                    continue
+
+                # 3️⃣ Wait for ANY rows to appear
+                try:
+                    WebDriverWait(self.driver, 20).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, ROW))
+                    )
+                    print("📨 Email rows detected.")
+                except:
+                    print("📭 No rows loaded yet (OWA still loading via AJAX).")
+                    time.sleep(8)
+                    continue
+
+                # 4️⃣ Now rows should exist
                 rows = self.driver.find_elements(By.CSS_SELECTOR, ROW)
-                print(f"📨 Found {len(rows)} email rows")
+                print(f"📩 Found {len(rows)} email rows.")
 
                 for row in rows:
                     try:
                         subjects = row.find_elements(By.CSS_SELECTOR, SUBJECT_SPANS)
                         full_text = " ".join([s.text.strip() for s in subjects if s.text.strip()])
-                        full_text_lower = full_text.lower()
 
                         print(f"   • Row text: {full_text[:80]}")
 
-                        if SUBJECT in full_text_lower:
+                        if SUBJECT in full_text.lower():
                             print("🎉 FOUND VERIFICATION EMAIL!")
                             print("📧 Full:", full_text)
 
@@ -477,10 +502,11 @@ class WorldPostaAutomationBot:
 
             except Exception as e:
                 print("⚠ Inbox scan error:", e)
-                time.sleep(10)
+                time.sleep(8)
 
         print("❌ Verification email NOT found after timeout.")
         return False
+
 
 
     def extract_verification_link(self):
