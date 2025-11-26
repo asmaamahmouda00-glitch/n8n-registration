@@ -53,9 +53,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter111",
-    'email': "ai.dexter111@worldposta.com",
-    'company': "AI Company dexter111",
+    'full_name': "AI dexter112",
+    'email': "ai.dexter112@worldposta.com",
+    'company': "AI Company dexter112",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
@@ -335,7 +335,10 @@ class WorldPostaAutomationBot:
 
 
             # Check if login succeeded (OWA inbox contains "owa/#path=/mail")
-            if "/owa/#path=/mail" in self.driver.current_url:
+            current_url = self.driver.current_url.lower()
+
+            # Accept any valid OWA inbox URL
+            if "/owa/#path=/mail" in current_url or "/owa/" in current_url:
                 print("✅ Email login successful — inbox loaded.")
             else:
                 print("❌ Login did not reach inbox.")
@@ -415,42 +418,6 @@ class WorldPostaAutomationBot:
                 print("📄 CURRENT URL:", self.driver.current_url)
                 print("📌 PAGE TITLE:", self.driver.title)
 
-
-                # Try to access Shadow DOM
-            try:
-                print("🔍 Attempting Shadow DOM access...")
-                root1 = self.driver.find_element(By.CSS_SELECTOR, "mail-app")
-                shadow1 = self.driver.execute_script("return arguments[0].shadowRoot", root1)
-
-                print("   ✔ Shadow root 1 accessed")
-
-                root2 = shadow1.find_element(By.CSS_SELECTOR, "mail-list")
-                shadow2 = self.driver.execute_script("return arguments[0].shadowRoot", root2)
-
-                print("   ✔ Shadow root 2 accessed")
-
-                # Now search inside shadow2
-                email_elements = shadow2.find_elements(By.CSS_SELECTOR, "div[role='option']")
-                print("   📧 Found", len(email_elements), "emails in Shadow DOM")
-            except Exception as e:
-                print("⚠ Shadow DOM access failed:", e)
-
-                # --- NEW: Switch to inbox iframe ---
-                self.driver.switch_to.default_content()
-                iframes = self.driver.find_elements(By.TAG_NAME, "iframe")
-                print(f"📥 Found {len(iframes)} iframes on page")
-
-                for idx, frame in enumerate(iframes):
-                    src = frame.get_attribute("src")
-                    print(f"   👉 iframe[{idx}] src={src}")
-
-                    # Try to detect the mail iframe
-                    if src and ("mail" in src.lower() or "owa" in src.lower() or "inbox" in src.lower()):
-                        print(f"📥 Switching into iframe[{idx}]")
-                        self.driver.switch_to.frame(frame)
-                        break
-                else:
-                    print("⚠️ No mail iframe found — staying in default content.")
 
                 # Try multiple selectors for email rows
                 email_selectors = [
