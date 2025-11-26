@@ -16,7 +16,7 @@ import json
 import argparse
 from datetime import datetime
 from bs4 import BeautifulSoup
-from selenium import webdriver
+import undetected_chromedriver as uc
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
@@ -53,9 +53,9 @@ JSON_FILE = "registration_results.json"
 # =====================================================
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter119",
-    'email': "ai.dexter119@worldposta.com",
-    'company': "AI Company dexter119",
+    'full_name': "AI dexter120",
+    'email': "ai.dexter120@worldposta.com",
+    'company': "AI Company dexter120",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
@@ -126,44 +126,32 @@ def get_screenshot_filename(email, status):
 
 class WorldPostaAutomationBot:
     def __init__(self, headless=False):
-        """Initialize automation bot with undetected Chrome"""
-        print("🌐 Launching Chrome browser...")
+        print("🌐 Launching Chrome browser (UC)...")
 
-        chrome_options = Options()
+        options = uc.ChromeOptions()
 
-        # Headless mode for GitHub Actions
-        chrome_options.add_argument("--headless=new")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--disable-extensions")
-        chrome_options.add_argument("--remote-debugging-port=9222")
+        # Matching your original flags
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
 
-        # Optional but good
-        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        if headless:
+            options.add_argument("--headless=new")
 
-        # Random window size (still works in headless)
-        chrome_options.add_argument("--window-size=1920,1080")
+        # Random window size to mimic real user
+        options.add_argument("--window-size=1920,1080")
 
-        self.driver = webdriver.Chrome(options=chrome_options)
+        # 👇 THE IMPORTANT PART
+        self.driver = uc.Chrome(options=options, use_subprocess=True)
 
         self.driver.set_page_load_timeout(60)
         self.wait = WebDriverWait(self.driver, DEFAULT_TIMEOUT)
 
-        # Store account data
-        self.account_data = None
-        self.status_log = {
-            'timestamp': get_timestamp(),
-            'email': '',
-            'status': 'unknown',
-            'error_message': '',
-            'screenshot_path': ''
-        }
-
-        # Ensure output directories exist
         ensure_directory(SCREENSHOT_DIR)
 
-        print("✅ Browser launched successfully")
+        print("✅ UC Browser launched successfully")
 
 
     def register(self, account_data):
