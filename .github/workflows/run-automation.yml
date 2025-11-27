@@ -83,3 +83,22 @@ jobs:
           
           echo "Running automation script..."
           python worldposta_automation_complete.py
+          # -----------------------------
+      # 8. DEBUG — Show screenshot directory
+      # -----------------------------
+      - name: Show screenshots folder (debug)
+        run: |
+          echo "📁 Listing repository root:"
+          ls -R .
+          echo "📁 Listing screenshots directory:"
+          ls -R screenshots || echo "⚠️ screenshots directory does not exist!"
+
+      # -----------------------------
+      # 9. Upload screenshots as artifact
+      # -----------------------------
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: screenshots/**
+          if-no-files-found: warn
