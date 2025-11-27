@@ -44,9 +44,9 @@ CSV_FILE = "registration_results.csv"
 JSON_FILE = "registration_results.json"
 
 CUSTOM_TEST_ACCOUNT = {
-    'full_name': "AI dexter200",
-    'email': "ai.dexter200@worldposta.com",
-    'company': "AI Company dexter200",
+    'full_name': "AI dexter201",
+    'email': "ai.dexter201@worldposta.com",
+    'company': "AI Company dexter201",
     'phone': "01095666032",
     'password': "gtzwO@lvr+A82biD5Xdmepf7k/*y1"
 }
