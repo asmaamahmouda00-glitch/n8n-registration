@@ -568,93 +568,93 @@ class WorldPostaAutomationBot:
     # =====================================================
     # STEP 7 — POST-LOGIN ACTIONS
     # =====================================================
-    def perform_post_login_actions(self):
-        print("\n" + "="*60)
-        print("🎯 STEP 7: POST-LOGIN ACTIONS")
-        print("="*60)
+    # def perform_post_login_actions(self):
+    #     print("\n" + "="*60)
+    #     print("🎯 STEP 7: POST-LOGIN ACTIONS")
+    #     print("="*60)
 
-        try:
-            time.sleep(4)
+    #     try:
+    #         time.sleep(4)
 
-            # Scroll dashboard
-            self.driver.execute_script("window.scrollTo(0, 600);")
-            time.sleep(2)
+    #         # Scroll dashboard
+    #         self.driver.execute_script("window.scrollTo(0, 600);")
+    #         time.sleep(2)
 
-            print("🔎 Searching for 'View Posta' and 'View CloudEdge' buttons...")
+    #         print("🔎 Searching for 'View Posta' and 'View CloudEdge' buttons...")
 
-            buttons = self.driver.find_elements(By.CSS_SELECTOR, "button.launch-button")
-            print(f"   Found {len(buttons)} launch buttons")
+    #         buttons = self.driver.find_elements(By.CSS_SELECTOR, "button.launch-button")
+    #         print(f"   Found {len(buttons)} launch buttons")
 
-            button_posta = None
-            button_cloud = None
+    #         button_posta = None
+    #         button_cloud = None
 
-            for btn in buttons:
-                t = btn.text.strip()
-                if "View Posta" in t:
-                    button_posta = btn
-                if "View CloudEdge" in t:
-                    button_cloud = btn
+    #         for btn in buttons:
+    #             t = btn.text.strip()
+    #             if "View Posta" in t:
+    #                 button_posta = btn
+    #             if "View CloudEdge" in t:
+    #                 button_cloud = btn
 
-            # ============================
-            # VIEW POSTA
-            # ============================
-            if button_posta:
-                print("\n➡️ Opening Posta...")
-                self.driver.execute_script("arguments[0].scrollIntoView();", button_posta)
-                time.sleep(1)
-                button_posta.click()
-                time.sleep(4)
+    #         # ============================
+    #         # VIEW POSTA
+    #         # ============================
+    #         if button_posta:
+    #             print("\n➡️ Opening Posta...")
+    #             self.driver.execute_script("arguments[0].scrollIntoView();", button_posta)
+    #             time.sleep(1)
+    #             button_posta.click()
+    #             time.sleep(4)
 
-                screenshot = os.path.join(
-                    SCREENSHOT_DIR,
-                    get_screenshot_filename(self.account_data['email'], "view_posta")
-                )
-                self.driver.save_screenshot(screenshot)
-                print(f"📸 Screenshot saved: {screenshot}")
+    #             screenshot = os.path.join(
+    #                 SCREENSHOT_DIR,
+    #                 get_screenshot_filename(self.account_data['email'], "view_posta")
+    #             )
+    #             self.driver.save_screenshot(screenshot)
+    #             print(f"📸 Screenshot saved: {screenshot}")
 
-                # Go back if still same tab
-                try:
-                    self.driver.back()
-                    time.sleep(3)
-                except:
-                    pass
+    #             # Go back if still same tab
+    #             try:
+    #                 self.driver.back()
+    #                 time.sleep(3)
+    #             except:
+    #                 pass
 
-            # ============================
-            # VIEW CLOUDEDGE
-            # ============================
-            if button_cloud:
-                print("\n➡️ Opening CloudEdge...")
-                button_cloud = self.driver.find_elements(By.CSS_SELECTOR, "button.launch-button")
-                for btn in button_cloud:
-                    if "View CloudEdge" in btn.text:
-                        button_cloud = btn
-                        break
+    #         # ============================
+    #         # VIEW CLOUDEDGE
+    #         # ============================
+    #         if button_cloud:
+    #             print("\n➡️ Opening CloudEdge...")
+    #             button_cloud = self.driver.find_elements(By.CSS_SELECTOR, "button.launch-button")
+    #             for btn in button_cloud:
+    #                 if "View CloudEdge" in btn.text:
+    #                     button_cloud = btn
+    #                     break
 
-                self.driver.execute_script("arguments[0].scrollIntoView();", button_cloud)
-                time.sleep(1)
-                button_cloud.click()
-                time.sleep(4)
+    #             self.driver.execute_script("arguments[0].scrollIntoView();", button_cloud)
+    #             time.sleep(1)
+    #             button_cloud.click()
+    #             time.sleep(4)
 
-                screenshot = os.path.join(
-                    SCREENSHOT_DIR,
-                    get_screenshot_filename(self.account_data['email'], "view_cloudedge")
-                )
-                self.driver.save_screenshot(screenshot)
-                print(f"📸 Screenshot saved: {screenshot}")
+    #             screenshot = os.path.join(
+    #                 SCREENSHOT_DIR,
+    #                 get_screenshot_filename(self.account_data['email'], "view_cloudedge")
+    #             )
+    #             self.driver.save_screenshot(screenshot)
+    #             print(f"📸 Screenshot saved: {screenshot}")
 
-            print("\n✅ Post-login actions finished.")
-            return True
+    #         print("\n✅ Post-login actions finished.")
+    #         return True
 
-        except Exception as e:
-            print(f"❌ Post-login actions failed: {e}")
+    #     except Exception as e:
+    #         print(f"❌ Post-login actions failed: {e}")
 
-            screenshot = os.path.join(
-                SCREENSHOT_DIR,
-                get_screenshot_filename(self.account_data['email'], "post_login_error")
-            )
-            self.driver.save_screenshot(screenshot)
+    #         screenshot = os.path.join(
+    #             SCREENSHOT_DIR,
+    #             get_screenshot_filename(self.account_data['email'], "post_login_error")
+    #         )
+    #         self.driver.save_screenshot(screenshot)
 
-            return False
+    #         return False
     # =====================================================
     # FINAL SCREENSHOT
     # =====================================================
@@ -783,10 +783,10 @@ class WorldPostaAutomationBot:
                 return False
 
             # Step 7 – Post-login actions
-            if not self.perform_post_login_actions():
-                self.status_log['status'] = 'failed_post_login_actions'
-                self.save_status()
-                return False
+            # if not self.perform_post_login_actions():
+            #     self.status_log['status'] = 'failed_post_login_actions'
+            #     self.save_status()
+            #     return False
 
             # Final screenshot
             self.take_final_screenshot()
