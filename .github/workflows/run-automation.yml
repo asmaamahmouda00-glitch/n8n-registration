@@ -5,8 +5,7 @@ on:
 
 jobs:
   run-script:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-24.04
     steps:
       # -----------------------------
       # 1. Checkout repo
@@ -29,32 +28,47 @@ jobs:
             fonts-liberation
 
 
+      # # -----------------------------
+      # # 3. Install Google Chrome (LATEST linux build)
+      # # -----------------------------
+      # - name: Install Google Chrome
+      #   run: |
+      #     wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+      #     sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt --fix-broken install -y
+
+      # # -----------------------------
+      # # 4. Install matching ChromeDriver
+      # # -----------------------------
+      # - name: Install ChromeDriver
+      #   run: |
+      #     CHROME_VERSION=$(google-chrome --version | sed 's/Google Chrome //')
+      #     echo "Detected Chrome version: $CHROME_VERSION"
+
+      #     LATEST_CHROMEDRIVER=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE")
+      #     echo "Installing ChromeDriver version: $LATEST_CHROMEDRIVER"
+
+      #     wget https://chromedriver.storage.googleapis.com/${LATEST_CHROMEDRIVER}/chromedriver_linux64.zip
+      #     unzip chromedriver_linux64.zip
+      #     sudo mv chromedriver /usr/local/bin/
+      #     sudo chmod +x /usr/local/bin/chromedriver
+
       # -----------------------------
-      # 3. Install Google Chrome (LATEST linux build)
+      # 3. Setup Chrome + matching ChromeDriver (managed)
       # -----------------------------
-      - name: Install Google Chrome
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+
+      # Optional but recommended: print versions in logs
+      - name: Show Chrome versions
         run: |
-          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt --fix-broken install -y
+          google-chrome --version
+          chromedriver --version
 
       # -----------------------------
-      # 4. Install matching ChromeDriver
-      # -----------------------------
-      - name: Install ChromeDriver
-        run: |
-          CHROME_VERSION=$(google-chrome --version | sed 's/Google Chrome //')
-          echo "Detected Chrome version: $CHROME_VERSION"
-
-          LATEST_CHROMEDRIVER=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE")
-          echo "Installing ChromeDriver version: $LATEST_CHROMEDRIVER"
-
-          wget https://chromedriver.storage.googleapis.com/${LATEST_CHROMEDRIVER}/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          sudo mv chromedriver /usr/local/bin/
-          sudo chmod +x /usr/local/bin/chromedriver
-
-      # -----------------------------
-      # 5. Setup Python
+      # 4. Setup Python
       # -----------------------------
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -62,7 +76,7 @@ jobs:
           python-version: "3.10"
 
       # -----------------------------
-      # 6. Install Python dependencies
+      # 5. Install Python dependencies
       # -----------------------------
       - name: Install Python dependencies
         run: |
@@ -71,7 +85,7 @@ jobs:
           pip install -r requirements.txt || true
 
       # -----------------------------
-      # 7. Run your automation script
+      # 6. Run your automation script
       # -----------------------------
       - name: Run automation script
         env:
@@ -84,7 +98,7 @@ jobs:
           echo "Running automation script..."
           python worldposta_automation_complete.py
           # -----------------------------
-      # 8. DEBUG — Show screenshot directory
+      # 7. DEBUG — Show screenshot directory
       # -----------------------------
       - name: Show screenshots folder (debug)
         run: |
@@ -94,7 +108,7 @@ jobs:
           ls -R screenshots || echo "⚠️ screenshots directory does not exist!"
 
       # -----------------------------
-      # 9. Upload screenshots as artifact
+      # 8. Upload screenshots as artifact
       # -----------------------------
       - name: Upload screenshots
         uses: actions/upload-artifact@v4

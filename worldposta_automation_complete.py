@@ -2,7 +2,8 @@
 WorldPosta Complete Automation Suite
 All-in-one script for registration, email verification, and login automation
 """
-
+import re
+import subprocess
 import time
 import random
 import os
@@ -100,6 +101,10 @@ def get_screenshot_filename(email, status):
     safe = email.replace("@", "_at_").replace(".", "_")
     return f"{safe}_{status}_{ts}.png"
 
+def get_chrome_major():
+    out = subprocess.check_output(["/usr/bin/google-chrome", "--version"]).decode()
+    m = re.search(r"(\d+)\.", out)  # e.g. "Google Chrome 145.0...."
+    return int(m.group(1)) if m else None
 
 # =====================================================
 # AUTOMATION BOT — START
@@ -125,10 +130,13 @@ class WorldPostaAutomationBot:
             options.add_argument("--headless=new")
 
         # ✅ FINAL WORKING LAUNCHER (only one)
+        chrome_major = get_chrome_major()
+        print(f"Detected Chrome major: {chrome_major}")
         self.driver = uc.Chrome(
             options=options,
             browser_executable_path=browser_executable_path,
-            driver_executable_path=None,   # UC auto-installs matching driver
+            version_main=chrome_major,      # ✅ force UC to match installed Chrome major
+            driver_executable_path=None,
             use_subprocess=True
         )
 
