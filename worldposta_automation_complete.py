@@ -170,12 +170,26 @@ class WorldPostaAutomationBot:
                 ))
             )
 
+            before_get_started_screenshot = os.path.join(
+                SCREENSHOT_DIR,
+                get_screenshot_filename(account_data['email'], "before_get_started")
+            )
+            self.driver.save_screenshot(before_get_started_screenshot)
+            print(f"📸 Screenshot saved before clicking Get Started: {before_get_started_screenshot}")
+
             human_like_mouse_move(self.driver, get_started_btn)
             self.driver.execute_script("arguments[0].click();", get_started_btn)
             random_delay(3, 5)
 
             print("✅ Waiting for registration page to load...")
             self.wait.until(lambda d: "admin.worldposta.com/auth/register" in d.current_url)
+
+            after_get_started_screenshot = os.path.join(
+                SCREENSHOT_DIR,
+                get_screenshot_filename(account_data['email'], "after_get_started")
+            )
+            self.driver.save_screenshot(after_get_started_screenshot)
+            print(f"📸 Screenshot saved after clicking Get Started: {after_get_started_screenshot}")
 
             print("📜 Scrolling to registration form...")
             self.driver.execute_script("window.scrollTo(0, 400);")
