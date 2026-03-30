@@ -28,6 +28,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 # CONFIGURATION
 # =====================================================
 
+HOMEPAGE_URL = "https://worldposta.com/"
 REGISTRATION_URL = "https://admin.worldposta.com/auth/register"
 EMAIL_LOGIN_URL = "https://mail.worldposta.com/"
 LOGIN_URL = "https://admin.worldposta.com/auth/login"
@@ -157,9 +158,24 @@ class WorldPostaAutomationBot:
         self.status_log = {'email': account_data['email']}
 
         try:
-            print(f"🔗 Navigating to: {REGISTRATION_URL}")
-            self.driver.get(REGISTRATION_URL)
+            print(f"🔗 Navigating to homepage: {HOMEPAGE_URL}")
+            self.driver.get(HOMEPAGE_URL)
             random_delay(3, 5)
+
+            print("🔘 Waiting for Get Started button...")
+            get_started_btn = self.wait.until(
+                EC.element_to_be_clickable((
+                    By.XPATH,
+                    '//a[contains(@href, "admin.worldposta.com/auth/register") and contains(normalize-space(.), "Get Started")]'
+                ))
+            )
+
+            human_like_mouse_move(self.driver, get_started_btn)
+            self.driver.execute_script("arguments[0].click();", get_started_btn)
+            random_delay(3, 5)
+
+            print("✅ Waiting for registration page to load...")
+            self.wait.until(lambda d: "admin.worldposta.com/auth/register" in d.current_url)
 
             print("📜 Scrolling to registration form...")
             self.driver.execute_script("window.scrollTo(0, 400);")
